@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>droidrop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>droidrop</h1>
+    <div id="device-status" class="device-status">
+      <span class="dot offline"></span>
+      <span id="device-label">looking for device…</span>
+    </div>
+    <button id="wifi-btn" class="ghost">Wifi setup</button>
+  </header>
+
+  <nav id="breadcrumb"></nav>
+
+  <main id="browser">
+    <div class="toolbar">
+      <button id="up-btn" class="ghost" title="Up one level">&larr; Up</button>
+      <button id="refresh-btn" class="ghost">Refresh</button>
+      <button id="newfolder-btn" class="ghost">New folder</button>
+      <span class="hint">Drag files or folders anywhere here to send them to the phone. Click a file to download it.</span>
+    </div>
+    <ul id="file-list"></ul>
+    <div id="drop-overlay"><div>Drop to send to <span id="drop-target-path"></span></div></div>
+    <div id="empty-state" hidden>No device connected. Plug in a USB cable (with USB debugging on) or use Wifi setup.</div>
+  </main>
+
+  <aside id="queue" hidden>
+    <h2>Transfers</h2>
+    <ul id="queue-list"></ul>
+  </aside>
+
+  <dialog id="wifi-dialog">
+    <h2>Connect over wifi</h2>
+
+    <section>
+      <h3>Easiest: enable via USB</h3>
+      <p class="muted">If the cable is plugged in right now, one click switches to wifi — then unplug:</p>
+      <div class="row"><button id="wifi-via-usb-btn">Enable wifi via USB</button></div>
+    </section>
+
+    <hr>
+    <p class="muted">No cable? On the phone: <b>Settings &rarr; Developer options &rarr; Wireless debugging</b> &rarr; turn it on.</p>
+
+    <section>
+      <h3>1 &middot; Pair (first time only)</h3>
+      <p class="muted">On the phone tap <b>"Pair device with pairing code"</b>, then copy what it shows:</p>
+      <div class="row">
+        <input id="pair-address" placeholder="IP:port, e.g. 192.168.1.23:37123">
+        <input id="pair-code" placeholder="6-digit code" maxlength="6">
+        <button id="pair-btn">Pair</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>2 &middot; Connect</h3>
+      <p class="muted">Use the IP and port shown on the main Wireless debugging screen (a different port than pairing), or pick a discovered device:</p>
+      <div class="row">
+        <input id="connect-address" placeholder="IP:port, e.g. 192.168.1.23:41551">
+        <button id="connect-btn">Connect</button>
+      </div>
+      <div class="row">
+        <button id="scan-btn" class="ghost">Scan network</button>
+      </div>
+      <ul id="mdns-list"></ul>
+    </section>
+
+    <div id="wifi-result" class="muted"></div>
+    <div class="row right"><button id="wifi-close" class="ghost">Close</button></div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
