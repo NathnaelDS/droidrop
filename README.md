@@ -38,16 +38,6 @@ Phone side, once: enable **Developer options** (tap Build number 7×), turn on
   adb report live percentages.
 - ~33 MB/s over USB. A movie in under a minute.
 
-## Bonus: web UI
-
-```sh
-npm start    # http://localhost:7878 — zero dependencies
-```
-
-A localhost two-way file browser for when you need more than drag-to-send:
-browse phone storage, pull files/folders back to the Mac, drag-drop uploads,
-and wireless ADB setup (connect over wifi, no cable).
-
 ## License
 
 MIT

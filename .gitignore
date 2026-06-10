@@ -2,5 +2,4 @@
 DroidDrop.app/
 # fetched automatically by menubar/build.sh
 vendor/
-node_modules/
 .DS_Store
