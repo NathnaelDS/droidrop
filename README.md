@@ -1,43 +1,53 @@
 # droidrop
 
-Dead-simple Mac → Android file transfer: drag files or folders onto a menu bar
-icon, they land at the top of the phone's storage (`/sdcard`) over the USB
-cable. Uses ADB — **no app needed on the phone**.
+> Drag a file onto your menu bar. It's on your phone.
 
-## Build & run
+Mac → Android file transfer that just works. No app on the phone, no cloud, no
+pairing dance — a tiny native menu bar app and a USB cable.
+
+**Why:** Android File Transfer is abandonware, MTP is cursed, and wifi-transfer
+websites make you type IP addresses like it's 1999. Meanwhile `adb push` has
+quietly been the fastest, most reliable way to move files to Android for a
+decade. droidrop is just that, wearing a menu bar icon.
+
+## Install
 
 ```sh
-./menubar/build.sh     # builds DroidDrop.app in the project root
-open DroidDrop.app     # or drag it to /Applications first
+git clone https://github.com/NathnaelDS/droidrop && cd droidrop
+./menubar/build.sh        # fetches adb, builds DroidDrop.app — fully self-contained
+mv DroidDrop.app /Applications && open /Applications/DroidDrop.app
 ```
 
-The app is self-contained (`adb` is bundled inside it). On first launch it
-registers itself to start at login — toggle "Start at Login" in its menu to
-change that.
-
-## One-time phone setup
-
-1. Settings → About phone → tap **Build number** 7 times (enables Developer options).
-2. Settings → Developer options → enable **USB debugging**.
-3. Plug in the cable; tap **Allow** on the phone (check "Always allow").
+Phone side, once: enable **Developer options** (tap Build number 7×), turn on
+**USB debugging**, plug in, tap **Allow**.
 
 ## Use
 
-- Drag any files/folders from Finder onto the menu bar icon → they're pushed to
-  `/sdcard` (folders arrive intact, recursively).
-- While sending, the icon shows `↑` and clicking it shows live progress
-  ("Sending 2 of 3: movie.mkv — 42%"); `✓` on completion, `!` plus an alert if
-  something failed.
-- Click the icon for connection status, the login toggle, and Quit.
+- **Drag files or folders** from Finder onto the 📱 icon → they land at the top
+  of the phone's storage. Folders arrive intact. That's the whole app.
+- While sending, click the icon for live progress — *"Sending 2 of 3:
+  movie.mkv — 42%"* — then `✓` (or `!` with the reason).
+- The menu shows connection status (🟢 connected / 🟡 tap Allow / ⚪ no phone)
+  and a Start-at-Login toggle (on by default).
 
-## Also in this repo (optional)
+## How it works
 
-`npm start` runs a localhost web UI (port 7878) for two-way transfers: browse
-the phone's storage, download files/folders to the Mac, drag-drop uploads, and
-wifi connection via wireless ADB. Not needed for the menu bar workflow.
+- One Swift file. Native AppKit, ~no RAM, no Electron.
+- `adb` is bundled inside the .app, so nothing else to install.
+- Transfers run `adb push` on a pseudo-terminal — that's the trick that makes
+  adb report live percentages.
+- ~33 MB/s over USB. A movie in under a minute.
 
-## Layout
+## Bonus: web UI
 
-- `menubar/` — the Swift menu bar app (one file) + build script
-- `src/`, `public/` — the optional Node web UI (zero npm dependencies)
-- `vendor/platform-tools/` — bundled adb
+```sh
+npm start    # http://localhost:7878 — zero dependencies
+```
+
+A localhost two-way file browser for when you need more than drag-to-send:
+browse phone storage, pull files/folders back to the Mac, drag-drop uploads,
+and wireless ADB setup (connect over wifi, no cable).
+
+## License
+
+MIT
