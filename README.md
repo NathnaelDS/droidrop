@@ -40,6 +40,10 @@ Phone side, once: enable **Developer options** (tap Build number 7×), turn on
   movie.mkv — 42%"* — then `✓` (or `!` with the reason).
 - The menu shows connection status (🟢 connected / 🟡 tap Allow / ⚪ no phone)
   and a Start-at-Login toggle (on by default).
+- **Go wireless**: with the cable in, one click switches the connection to wifi
+  — then unplug and keep dropping. (Resets when the phone reboots; plug in and
+  click again. Wifi transfers are only as fast as your network, and unencrypted
+  — use it on networks you trust.)
 
 ## How it works
 
