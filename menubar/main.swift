@@ -207,9 +207,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 if wifiActive {
                     self.wirelessLine.title = "Disconnect wireless"
                     self.wirelessLine.isEnabled = true
+                    if #available(macOS 14.0, *) { self.wirelessLine.subtitle = nil }
                 } else {
                     self.wirelessLine.title = usbReady ? "Go wireless — then unplug" : "Go wireless (plug in USB first)"
                     self.wirelessLine.isEnabled = usbReady
+                    if #available(macOS 14.0, *) {
+                        self.wirelessLine.subtitle = "Unencrypted — use on trusted networks only"
+                    }
                 }
             }
         }
