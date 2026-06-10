@@ -171,18 +171,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         loginLine.state = SMAppService.mainApp.status == .enabled ? .on : .off
         statusLine.title = "Checking for phone…"
+        statusLine.image = Self.dot(.tertiaryLabelColor)
         pushQueue.async { [weak self] in
-            let label = Self.statusLabel(for: listDevices())
-            DispatchQueue.main.async { self?.statusLine.title = label }
+            let (label, color) = Self.status(for: listDevices())
+            DispatchQueue.main.async {
+                self?.statusLine.title = label
+                self?.statusLine.image = Self.dot(color)
+            }
         }
     }
 
-    private static func statusLabel(for devices: [Device]) -> String {
-        guard let d = devices.first else { return "No phone connected — plug in USB" }
+    private static func status(for devices: [Device]) -> (String, NSColor) {
+        guard let d = devices.first else {
+            return ("No phone connected — plug in USB", .tertiaryLabelColor)
+        }
         switch d.state {
-        case "device": return "\(d.model.isEmpty ? d.serial : d.model) connected"
-        case "unauthorized", "authorizing": return "Phone found — tap “Allow” on it"
-        default: return "Phone is \(d.state)"
+        case "device": return ("\(d.model.isEmpty ? d.serial : d.model) connected", .systemGreen)
+        case "unauthorized", "authorizing": return ("Phone found — tap “Allow” on it", .systemYellow)
+        default: return ("Phone is \(d.state)", .systemRed)
+        }
+    }
+
+    private static func dot(_ color: NSColor) -> NSImage {
+        NSImage(size: NSSize(width: 9, height: 9), flipped: false) { rect in
+            color.withAlphaComponent(0.9).setFill()
+            NSBezierPath(ovalIn: rect.insetBy(dx: 0.5, dy: 0.5)).fill()
+            return true
         }
     }
 
