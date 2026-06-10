@@ -106,6 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let statusLine = NSMenuItem(title: "Checking for phone…", action: nil, keyEquivalent: "")
     private let progressLine = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let loginLine = NSMenuItem(title: "Start at Login", action: #selector(toggleLogin), keyEquivalent: "")
+    private let wirelessLine = NSMenuItem(title: "Go wireless", action: #selector(toggleWireless), keyEquivalent: "")
     private let remoteDir = "/sdcard"
     private let pushQueue = DispatchQueue(label: "droidrop.push")
     private var busy = false
@@ -124,13 +125,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             button.addSubview(drop)
         }
 
+        menu.autoenablesItems = false
         statusLine.isEnabled = false
         progressLine.isHidden = true
+        progressLine.isEnabled = false
         loginLine.target = self
+        wirelessLine.target = self
+        wirelessLine.isEnabled = false
+        let infoLine = NSMenuItem(title: "Drop files on the icon to send to the phone", action: nil, keyEquivalent: "")
+        infoLine.isEnabled = false
         menu.addItem(statusLine)
         menu.addItem(progressLine)
-        menu.addItem(NSMenuItem(title: "Drop files on the icon to send to the phone", action: nil, keyEquivalent: ""))
+        menu.addItem(infoLine)
         menu.addItem(.separator())
+        menu.addItem(wirelessLine)
         menu.addItem(loginLine)
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit droidrop", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -173,10 +181,67 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         statusLine.title = "Checking for phone…"
         statusLine.image = Self.dot(.tertiaryLabelColor)
         pushQueue.async { [weak self] in
-            let (label, color) = Self.status(for: listDevices())
+            let devices = listDevices()
+            let (label, color) = Self.status(for: devices)
+            let wifiActive = devices.contains { !$0.isUSB && $0.state == "device" }
+            let usbReady = devices.contains { $0.isUSB && $0.state == "device" }
             DispatchQueue.main.async {
-                self?.statusLine.title = label
-                self?.statusLine.image = Self.dot(color)
+                guard let self else { return }
+                self.statusLine.title = label
+                self.statusLine.image = Self.dot(color)
+                if wifiActive {
+                    self.wirelessLine.title = "Disconnect wireless"
+                    self.wirelessLine.isEnabled = true
+                } else {
+                    self.wirelessLine.title = usbReady ? "Go wireless — then unplug" : "Go wireless (plug in USB first)"
+                    self.wirelessLine.isEnabled = usbReady
+                }
+            }
+        }
+    }
+
+    @objc private func toggleWireless() {
+        pushQueue.async { [weak self] in
+            guard let self else { return }
+            let devices = listDevices()
+
+            if let wifi = devices.first(where: { !$0.isUSB }) {
+                adb(["disconnect", wifi.serial])
+                self.setTitle("✓", clearAfter: 2)
+                return
+            }
+
+            guard let usb = devices.first(where: { $0.isUSB && $0.state == "device" }) else { return }
+            let route = adb(["-s", usb.serial, "shell", "ip route get 1 2>/dev/null || ip route"])
+            guard let r = route.output.range(of: #"src (\d+\.\d+\.\d+\.\d+)"#, options: .regularExpression) else {
+                self.alert("Could not find the phone’s wifi IP",
+                           "Make sure the phone’s wifi is on and it’s on the same network as this Mac.")
+                return
+            }
+            let ip = String(route.output[r].dropFirst(4))
+
+            let tcp = adb(["-s", usb.serial, "tcpip", "5555"])
+            guard tcp.ok else {
+                self.alert("Could not switch the phone to wireless mode",
+                           tcp.output.trimmingCharacters(in: .whitespacesAndNewlines))
+                return
+            }
+
+            // adbd restarts in TCP mode; give it a moment, retry once if it's slow.
+            usleep(1_500_000)
+            var conn = adb(["connect", "\(ip):5555"])
+            if !conn.output.contains("connected") {
+                usleep(1_500_000)
+                conn = adb(["connect", "\(ip):5555"])
+            }
+
+            let out = conn.output.lowercased()
+            if out.contains("connected"), !out.contains("cannot"), !out.contains("failed") {
+                self.setTitle("✓", clearAfter: 3)
+            } else {
+                self.alert("Wireless connect failed",
+                           conn.output.trimmingCharacters(in: .whitespacesAndNewlines)
+                           + "\n\nIf the phone is showing an “Allow USB debugging” prompt, tap Allow and click Go wireless again.")
             }
         }
     }
