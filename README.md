@@ -13,10 +13,21 @@ decade. droidrop is just that, wearing a menu bar icon.
 ## Install
 
 ```sh
+brew install nathnaelds/tap/droidrop
+```
+
+then follow the printed instructions (one `cp` to /Applications).
+
+Or build from source:
+
+```sh
 git clone https://github.com/NathnaelDS/droidrop && cd droidrop
 ./menubar/build.sh        # fetches adb, builds DroidDrop.app — fully self-contained
 mv DroidDrop.app /Applications && open /Applications/DroidDrop.app
 ```
+
+Either way the build happens on your machine, so there's no Gatekeeper
+"unidentified developer" drama.
 
 Phone side, once: enable **Developer options** (tap Build number 7×), turn on
 **USB debugging**, plug in, tap **Allow**.
